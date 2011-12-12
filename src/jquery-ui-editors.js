@@ -350,7 +350,7 @@
                 schema = this.schema,
                 listType = schema.listType || 'Text';
 
-            var editor = Form.helpers.createEditor(listType, {
+            var editor = Form.Field.createEditor(listType, {
                 key: '',
                 schema: schema,
                 value: data
