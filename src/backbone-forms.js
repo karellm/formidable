@@ -12,8 +12,9 @@ define([
         
         //Support paths for nested attributes e.g. 'user.name'
         function getNested(obj, path) {
-            var fields = path.split(".");
-            var result = obj;
+            var fields = path.split("."),
+                result = obj;
+
             for (var i = 0, n = fields.length; i < n; i++) {
                 result = result[fields[i]];
             }
@@ -60,13 +61,11 @@ define([
              * Renders the form and all fields
              */
             render: function() {
-                var fieldsToRender = this.fieldsToRender,
-                    fieldsets = this.fieldsets,
-                    el = $(this.el),
+                var el = $(this.el),
                     self = this;
     
-                if (fieldsets) {
-                    _.each(fieldsets, function (fs) {
+                if (this.fieldsets) {
+                    _.each(this.fieldsets, function (fs) {
                         if (_(fs).isArray()) {
                             fs = {'fields': fs};
                         }
@@ -81,8 +80,8 @@ define([
                     });
                 } else {
                     var target = $('<ul>');
-                    el.append(target)
-                    this.renderFields(fieldsToRender, target);
+                    el.append(target);
+                    this.renderFields(this.fieldsToRender, target);
                 }
     
                 return this;
@@ -92,29 +91,25 @@ define([
              * Render a list of fields. Returns the rendered Field object.
              */
             renderFields: function (fieldsToRender, el) {
-                var schema = this.schema,
-                    model = this.model,
-                    data = this.data,
-                    fields = this.fields,
-                    el = el || $(this.el),
+                var el = el || $(this.el),
                     self = this;
                 
                 //Create form fields
                 _.each(fieldsToRender, function(key) {
-                    var itemSchema = getNestedSchema(schema, key);
+                    var itemSchema = getNestedSchema(self.schema, key);
     
                     if (!itemSchema) throw "Field '"+key+"' not found in schema";
     
                     var options = {
                         key: key,
                         schema: itemSchema,
-                        idPrefix: self.idPrefix
+                        idPrefix: self.idPrefix,
                     };
     
-                    if (model) {
-                        options.model = model;
-                    } else if (data) {
-                        options.value = data[key];
+                    if (self.model) {
+                        options.model = self.model;
+                    } else if (self.data) {
+                        options.value = self.data[key];
                     } else {
                         options.value = null;
                     }
@@ -128,7 +123,7 @@ define([
                         el.append(field.render().el);
                     }
     
-                    fields[key] = field;
+                    self.fields[key] = field;
                 });
             },
     
