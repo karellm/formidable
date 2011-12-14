@@ -7,6 +7,7 @@ new Backbone.Form({
           // type: 'Number'
           editor: {
             type: 'Number'
+            el: 
             schema: {
               
             }
@@ -20,9 +21,11 @@ new Backbone.Form({
           title // title of the label
           el // el if there is an existing dom element
           validators: {
-            required: true,
-            maxlength: 10
-          } // array of validators
+              required: true,
+              minLength: 3,
+              maxLength: 10,
+              url: true, // true or a regex
+            }
           idPrefix // prefix id to use for the fields and label
           template: 'templatename' // reference one of the templates
         },
