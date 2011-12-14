@@ -57,45 +57,36 @@ define([
        */
       validate: function () {
         var el = $(this.el),
-            error = null,
+            self = this,
+            tests = {},
+            hasError = false,
             value = this.getValue();
     
         if (this.validators) {
-          _(this.validators).each(function(validator) {
-            if (!error) {
-              error = this.getValidator(validator)(value);
-            }
+          _.each(this.validators, function(against, type) {
+            var test = self.getValidator(type)(value, against);
+            tests[type] = test;
+            if(!test) hasError = true;
           });
         }
     
-        if (!error && this.model && this.model.validate) {
-          var change = {};
-          change[this.key] = value;
-          error = this.model.validate(change);
+        if (_.isEmpty(tests) && this.model && this.model.validate) {
+          var arg = {}; arg[this.key] = value;
+          tests = this.model.validate(arg);
         }
     
-        if (error) {
-          el.addClass( this.errorClass );
+        if ( !_.isEmpty(tests) ) {
+          el.addClass( this.errorClass ).removeClass( this.successClass );
         } else {
-          el.removeClass( this.errorClass );
+          el.addClass( this.successClass ).removeClass( this.errorClass );
         }
     
-        return error;
+        return tests;
       },
   
   
       getValidator: function(validator) {
-        var isRegExp = _(validator).isRegExp();
-        if (isRegExp || validator['RegExp']) {
-          if (!isRegExp) {
-            validator = new RegExp(validator['RegExp']);
-          }
-          return function (value) {
-            if (!validator.test(value)) {
-                return 'Value '+value+' does not pass validation against regular expression '+validator;
-            }
-          };
-        } else if (_.isString(validator)) {
+        if (_.isString(validator)) {
           if (validators[validator]) {
             return validators[validator];
           } else {
@@ -104,7 +95,7 @@ define([
         } else if (_.isFunction(validator)) {
           return validator;
         } else {
-          throw 'Could not process validator' + validator;
+          throw 'Could not process validator ' + validator;
         }
       },
 
@@ -137,11 +128,11 @@ define([
       
       initialize: function(options) {      
         editors.Base.prototype.initialize.call(this, options);
-        
+
         //Allow customising text type (email, phone etc.) for HTML5 browsers
         var type = (this.schema && this.schema.dataType) ? this.schema.dataType : 'text';
     
-        $(this.el).attr('type', type);
+        if(!options.el) $(this.el).attr('type', type);
       },
     
       /**

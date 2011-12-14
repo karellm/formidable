@@ -52,6 +52,7 @@ define([
         //Decide on the editor to use
         this.editor = this.createEditor(editorType, {
           key       : this.key,
+          el        : schema.el,
           value     : this.value,
           model     : this.model,
           schema    : schema,
