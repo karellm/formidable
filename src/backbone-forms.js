@@ -153,7 +153,7 @@ define([
                     if (modelErrors) errors._nonFieldErrors = modelErrors;
                 }
     
-                return _.isEmpty(errors) ? null : errors;
+                return _.isEmpty(errors) ? true : errors;
             },
     
             /**
