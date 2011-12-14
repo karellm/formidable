@@ -43,6 +43,8 @@ new Backbone.Form({
         ['name', 'password']
       ]
     },
+    errorClass: 's-error', // default s-error. On validation gets added if the test fails
+    successClass: '', // empty by default. On validation gets added if the test passes
 
     templates: {
       templatename: '<div></div>'

@@ -66,24 +66,19 @@ define([
         editorHTML = $("<div />").append( $(this.editor.render().el).clone() ).html();
 
         el.html(this.template({
-          key         : this.key,
-          id          : schema.id,
-          fieldClass  : schema.class,
-          title       : schema.title,
-          editor      : editorHTML,
-          type        : editorType
+          key          : this.key,
+          id           : schema.id,
+          fieldClass   : schema.class,
+          title        : schema.title,
+          editor       : editorHTML,
+          type         : editorType,
+          errorClass   : this.errorClass,
+          successClass : this.successClass,
         }));
   
-        console.log(this.editor.render().el);
+        // console.log(this.editor.render().el);
+        // console.log(el);
 
-        console.log(el);
-
-        //R Add the editor
-        // el.html(this.editor.render().el);
-        // $('.bbf-editor', el).html(editor.render().el);
-  
-        //R this.editor = editor;
-  
         // Append the field to the DOM
         if(target && schema.append) el.appendTo(target);
 

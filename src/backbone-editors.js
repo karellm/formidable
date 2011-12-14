@@ -25,6 +25,11 @@ define([
     
       initialize: function(options) {
         var options = options || {};
+
+        this.schema        = options.schema || {};
+        this.validators    = options.validators || this.schema.validators;
+        this.errorClass    = options.errorClass;
+        this.successClass  = options.successClass;
     
         if (options.model) {
           if (!options.key) throw "Missing option: 'key'";
@@ -32,16 +37,11 @@ define([
           this.model = options.model;
           this.key = options.key;
     
-          this.value = this.model.get(this.key);
+          this.value = this.model.get(this.key) || this.defaultValue;
         } else if (options.value) {
-          this.value = options.value;
+          this.value = options.value || this.defaultValue;
         }
-          
-        
-        if (this.value === undefined) this.value = this.defaultValue;
-    
-        this.schema = options.schema || {};
-        this.validators = options.validators || this.schema.validators;
+
       },
     
       getValue: function() {
@@ -57,8 +57,8 @@ define([
        */
       validate: function () {
         var el = $(this.el),
-          error = null,
-          value = this.getValue();
+            error = null,
+            value = this.getValue();
     
         if (this.validators) {
           _(this.validators).each(function(validator) {
@@ -75,9 +75,9 @@ define([
         }
     
         if (error) {
-          el.addClass('bbf-error');
+          el.addClass( this.errorClass );
         } else {
-          el.removeClass('bbf-error');
+          el.removeClass( this.errorClass );
         }
     
         return error;

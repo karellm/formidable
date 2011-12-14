@@ -46,12 +46,14 @@ define([
              *          fields  {Array} : Keys of fields to include in the form, in display order (default: all fields)
              */
             initialize: function(options) {
-                this.schema     = options.schema || (options.model ? options.model.schema : {}),
-                this.model      = options.model;
-                this.data       = options.data;
-                this.fieldsets  = options.fieldsets;
-                this.idPrefix   = options.idPrefix || '';
-                this.templates  = options.templates;
+                this.schema        = options.schema || (options.model ? options.model.schema : {}),
+                this.model         = options.model;
+                this.data          = options.data;
+                this.fieldsets     = options.fieldsets;
+                this.idPrefix      = options.idPrefix || '';
+                this.errorClass    = options.errorClass || 's-error';
+                this.successClass  = options.successClass || null;
+                this.templates     = options.templates;
 
                 //R this.fieldsToRender = options.fields || _.keys(this.schema);
             },
@@ -100,11 +102,13 @@ define([
                     if (!itemSchema) throw "Field '"+key+"' not found in schema";
     
                     var options = {
-                        key       : key,
-                        model     : self.model,
-                        schema    : itemSchema,
-                        value     : self.data[key] || null,
-                        idPrefix  : self.idPrefix,
+                        key          : key,
+                        model        : self.model,
+                        schema       : itemSchema,
+                        value        : self.data[key] || null,
+                        idPrefix     : self.idPrefix,
+                        errorClass   : this.errorClass,
+                        successClass : this.successClass,
                     };
 
                     // Pick the good template
