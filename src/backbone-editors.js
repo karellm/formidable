@@ -28,8 +28,8 @@ define([
 
         this.schema        = options.schema || {};
         this.validators    = options.validators || this.schema.validators;
-        this.errorClass    = options.errorClass;
-        this.successClass  = options.successClass;
+        this.errorClass    = options.errorClass || 's-error';
+        this.successClass  = options.successClass  || null;
     
         if (options.model) {
           if (!options.key) throw "Missing option: 'key'";
