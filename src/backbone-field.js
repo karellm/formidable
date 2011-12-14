@@ -49,10 +49,6 @@ define([
             editorType = _.isString( schema.editor ) ? schema.editor : schema.editor.type,
             editorHTML;
 
-        // Set class and id on the field
-        if(schema.class && !el.hasClass(schema.class)) el.addClass(schema.class);
-        if(schema.id && el.attr('id') != schema.id) el.attr('id', schema.id);
-  
         //Decide on the editor to use
         this.editor = this.createEditor(editorType, {
           key       : this.key,
@@ -62,26 +58,29 @@ define([
           idPrefix  : this.idPrefix,
         });
 
-        // get the HTML of the editor for the templating engine
-        editorHTML = $("<div />").append( $(this.editor.render().el).clone() ).html();
-
-        el.html(this.template({
-          key          : this.key,
-          id           : schema.id,
-          fieldClass   : schema.class,
-          title        : schema.title,
-          editor       : editorHTML,
-          type         : editorType,
-          errorClass   : this.errorClass,
-          successClass : this.successClass,
-        }));
+        if ( schema.el.length ) {
+          // Set class and id on the field
+          if(schema.class && !el.hasClass(schema.class)) el.addClass(schema.class);
+          if(schema.id && el.attr('id') != schema.id) el.attr('id', schema.id);
+        } else {
+          // get the HTML of the editor for the templating engine
+          editorHTML = $("<div />").append( $(this.editor.render().el).clone() ).html();
   
-        // console.log(this.editor.render().el);
-        // console.log(el);
+          el.html(this.template({
+            key          : this.key,
+            id           : schema.id,
+            fieldClass   : schema.class,
+            title        : schema.title,
+            editor       : editorHTML,
+            type         : editorType,
+            errorClass   : this.errorClass,
+            successClass : this.successClass,
+          }));
 
-        // Append the field to the DOM
-        if(target && schema.append) el.appendTo(target);
-
+          // Append the field to the DOM
+          if(target && schema.append) el.appendTo(target);
+        }        
+  
         return this;
       },
 
