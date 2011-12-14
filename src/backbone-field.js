@@ -39,7 +39,7 @@ define([
         this.model      = options.model;
         this.value      = options.value;
         this.idPrefix   = options.idPrefix || '';
-        this.template   = (schema.template) ? helpers.createTemplate(schema.template) : Field.template;
+        this.template   = (schema.template) ? schema.template : Field.template;
         this.className  = options.schema.class || this.setClass();
       },
   
@@ -48,7 +48,7 @@ define([
             el = $(this.el),
             editorType = _.isString( schema.editor ) ? schema.editor : schema.editor.type,
             editorHTML;
-        
+
         // Set class and id on the field
         if(schema.class && !el.hasClass(schema.class)) el.addClass(schema.class);
         if(schema.id && el.attr('id') != schema.id) el.attr('id', schema.id);
@@ -89,6 +89,8 @@ define([
        * Return the best editor for an existing dom element
        */
       getEditorType: function(el) {
+        if(!el.length) return 'Text';
+
         var tagname = el.get(0).nodeName.toLowerCase();
 
         switch(tagname) {
@@ -112,8 +114,8 @@ define([
       /**
        * Return the editor constructor for a given schema 'type'.
        */
-      createEditor: function(schemaType, options) {
-        var constructorFn = (_.isString(schemaType)) ? editors[schemaType] : schemaType;
+      createEditor: function(editorType, options) {
+        var constructorFn = (_.isString(editorType)) ? editors[editorType] : editorType;
         return new constructorFn(options);
       },
 
