@@ -19,7 +19,10 @@ new Backbone.Form({
           id // id for the field
           title // title of the label
           el // el if there is an existing dom element
-          validator // array of validators
+          validators: {
+            required: true,
+            maxlength: 10
+          } // array of validators
           idPrefix // prefix id to use for the fields and label
           template: 'templatename' // reference one of the templates
         },

@@ -79,7 +79,7 @@ define([
 
           // Append the field to the DOM
           if(target && schema.append) el.appendTo(target);
-        }        
+        }
   
         return this;
       },
