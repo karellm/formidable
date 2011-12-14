@@ -33,9 +33,10 @@ define([
           this.key = options.key;
     
           this.value = this.model.get(this.key);
-        }
-        else if (options.value)
+        } else if (options.value) {
           this.value = options.value;
+        }
+          
         
         if (this.value === undefined) this.value = this.defaultValue;
     
@@ -138,9 +139,7 @@ define([
         editors.Base.prototype.initialize.call(this, options);
         
         //Allow customising text type (email, phone etc.) for HTML5 browsers
-        var type = 'text';
-        
-        if (this.schema && this.schema.dataType) type = this.schema.dataType;
+        var type = (this.schema && this.schema.dataType) ? this.schema.dataType : 'text';
     
         $(this.el).attr('type', type);
       },

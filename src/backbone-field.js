@@ -10,9 +10,7 @@ define([
 
     var Field = Backbone.View.extend({
   
-      tagName: 'li',
-  
-      className: 'bbf-field',
+      tagName: 'div',
   
       events: {
         'click label': 'logValue'
@@ -29,55 +27,92 @@ define([
        *     idPrefix  {String} : Prefix to add to the editor DOM element's ID
        */
       initialize: function(options) {
-        this.key = options.key;
-        this.schema = options.schema || {};
-        this.value = options.value;
-        this.model = options.model;
-        this.idPrefix = options.idPrefix || '';
-  
-        //Set schema defaults
-        var schema = this.schema;
-        if (!schema.type) schema.type = 'Text';
-        if (!schema.title) schema.title = helpers.keyToTitle(this.key);
+        var schema = options.schema || {};
+
+        // set defaults for the schema       
+        this.schema     = schema;
+        schema.editor   = schema.editor || (schema.el) ? this.getEditorType(schema.el) : 'Text';
+        schema.title    = schema.title || helpers.keyToTitle(options.key);
+        schema.append   = (schema.el || schema.render == false) ? false : true;
+
+        this.key        = options.key;
+        this.model      = options.model;
+        this.value      = options.value;
+        this.idPrefix   = options.idPrefix || '';
+        this.template   = (schema.template) ? helpers.createTemplate(schema.template) : Field.template;
+        this.className  = options.schema.class || this.setClass();
       },
   
-      render: function() {
+      render: function(target) {
         var schema = this.schema,
-          el = $(this.el);
-  
-        el.addClass('bbf-field' + schema.type);
-  
-        //Standard options that will go to all editors
-        var options = {
-          key: this.key,
-          schema: schema,
-          idPrefix: this.idPrefix,
-          id: this.idPrefix + this.key
-        };
-  
-        //Decide on data delivery type to pass to editors
-        if (this.model)
-          options.model = this.model;
-        else
-          options.value = this.value;
+            el = $(this.el),
+            editorType = _.isString( schema.editor ) ? schema.editor : schema.editor.type,
+            editorHTML;
+        
+        // Set class and id on the field
+        if(schema.class && !el.hasClass(schema.class)) el.addClass(schema.class);
+        if(schema.id && el.attr('id') != schema.id) el.attr('id', schema.id);
   
         //Decide on the editor to use
-        var editor = this.createEditor(schema.type, options);
-  
-        el.html(Field.template({
-          key: this.key,
-          title: schema.title,
-          id: editor.id,
-          type: schema.type
+        this.editor = this.createEditor(editorType, {
+          key       : this.key,
+          value     : this.value,
+          model     : this.model,
+          schema    : schema,
+          idPrefix  : this.idPrefix,
+        });
+
+        // get the HTML of the editor for the templating engine
+        editorHTML = $("<div />").append( $(this.editor.render().el).clone() ).html();
+
+        el.html(this.template({
+          key         : this.key,
+          id          : schema.id,
+          fieldClass  : schema.class,
+          title       : schema.title,
+          editor      : editorHTML,
+          type        : editorType
         }));
   
-        //Add the editor
-        $('.bbf-editor', el).html(editor.render().el);
+        console.log(this.editor.render().el);
+
+        console.log(el);
+
+        //R Add the editor
+        // el.html(this.editor.render().el);
+        // $('.bbf-editor', el).html(editor.render().el);
   
-        this.editor = editor;
+        //R this.editor = editor;
   
+        // Append the field to the DOM
+        if(target && schema.append) el.appendTo(target);
+
         return this;
       },
+
+      /**
+       * Return the best editor for an existing dom element
+       */
+      getEditorType: function(el) {
+        var tagname = el.get(0).nodeName.toLowerCase();
+
+        switch(tagname) {
+          case 'textarea':
+            return 'Textarea'; break;
+
+          case 'select':
+            return 'Select'; break;
+
+          case 'input':
+            var type = el.attr('type').toLowerCase();
+            return type.charAt(0).toUpperCase() + type.slice(1);
+            break;
+
+          default:
+            return 'Text';
+        }
+      },
+
 
       /**
        * Return the editor constructor for a given schema 'type'.
@@ -86,6 +121,16 @@ define([
         var constructorFn = (_.isString(schemaType)) ? editors[schemaType] : schemaType;
         return new constructorFn(options);
       },
+
+
+      setClass: function() {
+        if(this.schema && this.schema.type) {
+          switch(this.schema.type) {
+            
+          }
+        }
+      },
+
   
       /**
        * Validate the value from the editor
@@ -131,7 +176,7 @@ define([
       //Static
       template: helpers.createTemplate('\
          <label for="{{id}}">{{title}}</label>\
-         <div class="bbf-editor bbf-editor{{type}}"></div>\
+         <div class="bbf-editor bbf-editor{{type}}">{{editor}}</div>\
       ')
       
     });

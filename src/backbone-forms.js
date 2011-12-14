@@ -30,7 +30,7 @@ define([
         var Form = Backbone.View.extend({
             
             //Field views
-            fields: null,
+            fields: {},
     
             tagName: 'fieldset',
             
@@ -46,15 +46,14 @@ define([
              *          fields  {Array} : Keys of fields to include in the form, in display order (default: all fields)
              */
             initialize: function(options) {
-                this.schema = options.schema || (options.model ? options.model.schema : {}),
-                this.model = options.model;
-                this.data = options.data;
-                this.fieldsToRender = options.fields || _.keys(this.schema);
-                this.fieldsets = options.fieldsets;
-                this.idPrefix = options.idPrefix || '';
-    
-                //Stores all Field views
-                this.fields = {};
+                this.schema     = options.schema || (options.model ? options.model.schema : {}),
+                this.model      = options.model;
+                this.data       = options.data;
+                this.fieldsets  = options.fieldsets;
+                this.idPrefix   = options.idPrefix || '';
+                this.templates  = options.templates;
+
+                //R this.fieldsToRender = options.fields || _.keys(this.schema);
             },
     
             /**
@@ -70,18 +69,18 @@ define([
                             fs = {'fields': fs};
                         }
     
-                        var fieldset = $('<fieldset><ul>');
+                        var fieldset = $('<fieldset>');
     
                         if (fs.legend) {
                             fieldset.append($('<legend>').html(fs.legend));
                         }
-                        self.renderFields(fs.fields, fieldset.find('ul'));
+                        self.renderFields(fs.fields, fieldset);
                         el.append(fieldset);
                     });
                 } else {
                     var target = $('<ul>');
                     el.append(target);
-                    this.renderFields(this.fieldsToRender, target);
+                    this.renderFields(_.keys(this.schema), target);
                 }
     
                 return this;
@@ -101,27 +100,32 @@ define([
                     if (!itemSchema) throw "Field '"+key+"' not found in schema";
     
                     var options = {
-                        key: key,
-                        schema: itemSchema,
-                        idPrefix: self.idPrefix,
+                        key       : key,
+                        model     : self.model,
+                        schema    : itemSchema,
+                        value     : self.data[key] || null,
+                        idPrefix  : self.idPrefix,
                     };
-    
-                    if (self.model) {
-                        options.model = self.model;
-                    } else if (self.data) {
-                        options.value = self.data[key];
-                    } else {
-                        options.value = null;
+
+                    // Pick the good template
+                    if(itemSchema.template) {
+                        if(!self.templates) 
+                            throw "No templates are defined.";
+                        else if(!self.templates[itemSchema.template]) 
+                            throw "Template '"+itemSchema.template+"' not found in templates";
+                        else if (typeof itemSchema.template == 'string')
+                            itemSchema.template = helpers.createTemplate( self.templates[itemSchema.template] );
                     }
     
-                    var field = new Field(options);
-    
+                    var field = new Field(options).render(el);
+
+                    //R
                     //Render the fields with editors, apart from Hidden fields
-                    if (itemSchema.type == 'Hidden') {
-                        field.editor = Field.createEditor('Hidden', options);
-                    } else {
-                        el.append(field.render().el);
-                    }
+                    // if (itemSchema.type == 'Hidden') {
+                    //     field.editor = Field.createEditor('Hidden', options);
+                    // } else {
+                    //     el.append(field.render().el);
+                    // }
     
                     self.fields[key] = field;
                 });
@@ -182,10 +186,8 @@ define([
              */
             getValue: function(key) {
                 if (key) {
-                    //Return given key only
                     return this.fields[key].getValue();
                 } else {
-                    //Return entire form data
                     var schema = this.schema,
                         fields = this.fields
                         obj = {};
