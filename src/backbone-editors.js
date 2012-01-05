@@ -23,8 +23,8 @@ define([
     
       defaultValue: null,
     
-      initialize: function(options) {
-        var options = options || {};
+      initialize: function() {
+        var options = this.options;
 
         this.schema        = options.schema || {};
         this.validators    = options.validators || this.schema.validators;
@@ -42,7 +42,25 @@ define([
           this.value = options.value || this.defaultValue;
         }
 
+        // Set html attributes to the editor -------------------
+        if(this.schema.attr && !this.schema.el) {
+          var $el = $(this.el);
+          _.each(options.schema.attr, function(value, attr) {
+            $el.attr(attr, value);
+          });
+        }
+
+        // Add plugins
+        if(_.isFunction(this.schema.plugin)) this.plugin = $.proxy(this.schema.plugin, this);
       },
+
+      baseRender: function(container) {
+        // Create the dom element if a container argument was passed
+        if(container && container.length) container.append(this.el);
+
+        // Apply possible plugin
+        if(this.plugin) this.plugin();
+      }
     
       getValue: function() {
         throw 'Not implemented. Extend and override this method.';
@@ -64,7 +82,11 @@ define([
     
         if (this.validators) {
           _.each(this.validators, function(against, type) {
-            var test = self.getValidator(type)(value, against);
+            if(_.isFunction(against)) 
+              var test = against(value)
+            else
+              var test = self.getValidator(type)(value, against);
+            
             tests[type] = test;
             if(!test) hasError = true;
           });
@@ -81,7 +103,10 @@ define([
           el.addClass( this.successClass ).removeClass( this.errorClass );
         }
     
-        return tests;
+        return {
+          el: el,
+          tests: tests
+        };
       },
   
   
@@ -123,41 +148,34 @@ define([
     editors.Text = editors.Base.extend({
     
       tagName: 'input',
-    
+
       defaultValue: '',
       
       initialize: function(options) {      
         editors.Base.prototype.initialize.call(this, options);
-
-        //Allow customising text type (email, phone etc.) for HTML5 browsers
-        var type = (this.schema && this.schema.dataType) ? this.schema.dataType : 'text';
-    
-        if(!options.el) $(this.el).attr('type', type);
       },
     
-      /**
-       * Adds the editor to the DOM
-       */
-      render: function() {
+      render: function(container) {
+        var el = $(this.el),
+            type = (this.schema && this.schema.dataType) || 'text';
+    
+        // Allow customising text type (email, phone etc.) for HTML5 browsers
+        if(!el.length) el.attr('type', type);
+
+        // Set the value
         this.setValue(this.value);
+
+        this.baseRender(container || null);
     
         return this;
       },
     
-      /**
-       * Returns the current editor value
-       * @return {String}
-       */
       getValue: function() {
         return $(this.el).val();
       },
       
-      /**
-       * Sets the value of the form element
-       * @param {String}
-       */
       setValue: function(value) {
-        $(this.el).val(value);
+        $(this.el).attr('value', value);
       }
     
     });
@@ -205,7 +223,7 @@ define([
       initialize: function(options) {
         editors.Text.prototype.initialize.call(this, options);
     
-        $(this.el).attr('type', 'password');
+        var type = (this.schema && this.schema.dataType) || 'password';
       }
     
     });
@@ -230,11 +248,10 @@ define([
         $(this.el).attr('type', 'checkbox');
       },
     
-      /**
-       * Adds the editor to the DOM
-       */
-      render: function() {
+      render: function(container) {
         this.setValue(this.value);
+
+        this.baseRender(container || null);
     
         return this;
       },
@@ -282,17 +299,19 @@ define([
     
       tagName: 'select',
     
-      initialize: function(options) {
-        editors.Base.prototype.initialize.call(this, options);
-    
+      initialize: function() {
+        editors.Base.prototype.initialize.call(this, this.options);
+
         if (!this.schema || !this.schema.options)
           throw "Missing required 'schema.options'";
       },
     
-      render: function() {
+      render: function(container) {
         var options = this.schema.options,
-          self = this;
+            self = this;
     
+        
+
         //If a collection was passed, check if it needs fetching
         if (options instanceof Backbone.Collection) {
           var collection = options;
@@ -320,6 +339,8 @@ define([
         else {
           self.renderOptions(options);
         }
+   
+        this.baseRender(container || null);
     
         return this;
       },
@@ -332,20 +353,13 @@ define([
        */
       renderOptions: function(options) {
         var $select = $(this.el),
-          html;
+            html;
     
-        //Accept string of HTML
         if (_.isString(options)) {
           html = options;
-        }
-    
-        //Or array
-        else if (_.isArray(options)) {
+        } else if (_.isArray(options)) {
           html = this._arrayToHtml(options);
-        }
-    
-        //Or Backbone collection
-        else if (options instanceof Backbone.Collection) {
+        } else if (options instanceof Backbone.Collection) {
           html = this._collectionToHtml(options)
         }
     
@@ -375,7 +389,7 @@ define([
         collection.each(function(model) {
           array.push({ val: model.id, label: model.toString() });
         });
-    
+
         //Now convert to HTML
         var html = this._arrayToHtml(array);
     
@@ -485,7 +499,7 @@ define([
         this.idPrefix = options.idPrefix || '';
       },
     
-      render: function() {
+      render: function(container) {
         var el = $(this.el),
           data = this.value || {},
           key = this.key,
@@ -500,6 +514,8 @@ define([
     
         //Render form
         el.html(this.form.render().el);
+
+        this.baseRender(container || null);
     
         return this;
       },
@@ -540,7 +556,7 @@ define([
         this.idPrefix = options.idPrefix || '';
       },
     
-      render: function() {
+      render: function(container) {
         var el = $(this.el),
           data = this.value || {},
           key = this.key,
@@ -555,7 +571,9 @@ define([
     
         //Render form
         el.html(this.form.render().el);
-    
+
+        this.baseRender(container || null);
+
         return this;
       },
     
