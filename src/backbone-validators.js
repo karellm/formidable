@@ -1,16 +1,14 @@
 
 define([
-  "underscore",
-  "backbone",
-  "./backbone-helpers",
-], function(_, Backbone, helpers) {
+  "underscore"
+], function(_) {
 
-    return (function(helpers) {
+    return (function() {
 
         var validators = {};
     
-        validators.required = function (value, against) {
-            if(against && !( value === 0 || !!value ) ) {
+        validators.required = function (value, criteria) {
+            if(criteria && !( value === 0 || !!value ) ) {
                 return false;
             }
             return true;
@@ -24,28 +22,28 @@ define([
             return _.isNumber(value) && (value === parseInt(value));
         }
 
-        validators.min = function(value, against) {
-            return (value >= against);
+        validators.min = function(value, criteria) {
+            return (value >= criteria);
         }
 
-        validators.max = function(value, against) {
-            return (value <= against);
+        validators.max = function(value, criteria) {
+            return (value <= criteria);
         }
 
-        validators.minLength = function(value, against) {
-            return _.isString(value) && (value.length >= against);
+        validators.minLength = function(value, criteria) {
+            return _.isString(value) && (value.length >= criteria);
         }
 
-        validators.maxLength = function(value, against) {
-            return _.isString(value) && (value.length <= against);
+        validators.maxLength = function(value, criteria) {
+            return _.isString(value) && (value.length <= criteria);
         }
 
-        validators.in = function (value, against) {
-            return _.include(against, value) ? true : false;
+        validators.in = function (value, criteria) {
+            return _.include(criteria, value) ? true : false;
         };
 
-        validators.pattern = function (value, against) {
-            var pattern = _.isRegExp(against) ? against : new RegExp(against);
+        validators.pattern = function (value, criteria) {
+            var pattern = _.isRegExp(criteria) ? criteria : new RegExp(criteria);
             return pattern.test(value);
         };
 
@@ -65,6 +63,6 @@ define([
 
         return validators;
     
-    })(helpers);
+    })();
 
 });

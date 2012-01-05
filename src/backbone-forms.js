@@ -45,7 +45,8 @@ define([
              *          data    {Array} : Pass this when not using a model. Use getValue() to get out value
              *          fields  {Array} : Keys of fields to include in the form, in display order (default: all fields)
              */
-            initialize: function(options) {
+            initialize: function() {
+                var options        = this.options;
                 this.schema        = options.schema || (options.model ? options.model.schema : {}),
                 this.model         = options.model;
                 this.data          = options.data;
@@ -54,17 +55,20 @@ define([
                 this.errorClass    = options.errorClass || 's-error';
                 this.successClass  = options.successClass || null;
                 this.templates     = options.templates;
-
-                //R this.fieldsToRender = options.fields || _.keys(this.schema);
             },
     
             /**
              * Renders the form and all fields
              */
-            render: function() {
+            render: function(container) {
                 var el = $(this.el),
                     self = this;
     
+                // this step is required for editor plugin to work
+                if(container && container.length) container.append(this.el);
+
+                this.fields = {};
+
                 if (this.fieldsets) {
                     _.each(this.fieldsets, function (fs) {
                         if (_(fs).isArray()) {
@@ -80,9 +84,7 @@ define([
                         el.append(fieldset);
                     });
                 } else {
-                    var target = $('<ul>');
-                    el.append(target);
-                    this.renderFields(_.keys(this.schema), target);
+                    this.renderFields(_.keys(this.schema), el);
                 }
     
                 return this;
@@ -91,8 +93,8 @@ define([
             /**
              * Render a list of fields. Returns the rendered Field object.
              */
-            renderFields: function (fieldsToRender, el) {
-                var el = el || $(this.el),
+            renderFields: function (fieldsToRender, container) {
+                var container = container || $(this.el),
                     self = this;
                 
                 //Create form fields
@@ -105,7 +107,7 @@ define([
                         key          : key,
                         model        : self.model,
                         schema       : itemSchema,
-                        value        : self.data[key] || null,
+                        value        : (self.data && self.data[key]) || null,
                         idPrefix     : self.idPrefix,
                         errorClass   : this.errorClass,
                         successClass : this.successClass,
@@ -120,16 +122,8 @@ define([
                         else if (typeof itemSchema.template == 'string')
                             itemSchema.template = helpers.createTemplate( self.templates[itemSchema.template] );
                     }
-    
-                    var field = new Field(options).render(el);
 
-                    //R
-                    //Render the fields with editors, apart from Hidden fields
-                    // if (itemSchema.type == 'Hidden') {
-                    //     field.editor = Field.createEditor('Hidden', options);
-                    // } else {
-                    //     el.append(field.render().el);
-                    // }
+                    var field = new Field(options).render(container);
     
                     self.fields[key] = field;
                 });
@@ -144,7 +138,7 @@ define([
                 var fields = this.fields,
                     model = this.model,
                     errors = {};
-    
+
                 _.each(fields, function(field) {
                     var error = field.validate();
                     if (error) {
