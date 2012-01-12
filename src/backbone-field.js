@@ -45,8 +45,7 @@ define([
       render: function(container) {
         var schema = this.schema,
             el = $(this.el),
-            editorType = _.isString( schema.editor ) ? schema.editor : schema.editor.type,
-            editorHTML;
+            editorType = _.isString( schema.editor ) ? schema.editor : schema.editor.type;
 
         // Append the field to the DOM
         if(container && schema.append) container.append(this.el);

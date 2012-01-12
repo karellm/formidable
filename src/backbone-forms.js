@@ -135,15 +135,14 @@ define([
              * @return {Object} Validation errors
              */
             validate: function() {
-                var fields = this.fields,
-                    model = this.model,
+                var model = this.model,
+                    hasError = false,
                     errors = {};
 
-                _.each(fields, function(field) {
+                _.each(this.fields, function(field) {
                     var error = field.validate();
-                    if (error) {
-                        errors[field.key] = error;
-                    }
+                    if(error.hasError) errors.hasError = true;
+                    errors[field.key] = error;
                 });
     
                 if (model && model.validate) {

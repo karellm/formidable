@@ -60,7 +60,7 @@ define([
 
         // Apply possible plugin
         if(this.plugin) this.plugin();
-      }
+      },
     
       getValue: function() {
         throw 'Not implemented. Extend and override this method.';
@@ -104,6 +104,7 @@ define([
         }
     
         return {
+          hasError: hasError,
           el: el,
           tests: tests
         };
