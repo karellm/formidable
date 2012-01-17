@@ -258,10 +258,6 @@ define([
       },
       
       getValue: function() {
-
-        this.baseRender(container || null);
-
-        this.baseRender(container || null);
         var el = $(this.el),
             results = {};
 
