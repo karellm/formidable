@@ -26,10 +26,9 @@ define([
       initialize: function() {
         var options = this.options;
 
+        this.form          = options.form || null;
         this.schema        = options.schema || {};
         this.validators    = options.validators || this.schema.validators;
-        this.errorClass    = options.errorClass || 's-error';
-        this.successClass  = options.successClass  || null;
     
         if (options.model) {
           if (!options.key) throw "Missing option: 'key'";
@@ -83,10 +82,10 @@ define([
         if (this.validators) {
           _.each(this.validators, function(against, type) {
             if(_.isFunction(against)) 
-              var test = against(value)
+              var test = against(value, self);
             else
-              var test = self.getValidator(type)(value, against);
-            
+              var test = self.getValidator(type)(value, against, self);
+
             tests[type] = test;
             if(!test) hasError = true;
           });
@@ -95,12 +94,6 @@ define([
         if (_.isEmpty(tests) && this.model && this.model.validate) {
           var arg = {}; arg[this.key] = value;
           tests = this.model.validate(arg);
-        }
-    
-        if ( !_.isEmpty(tests) ) {
-          el.addClass( this.errorClass ).removeClass( this.successClass );
-        } else {
-          el.addClass( this.successClass ).removeClass( this.errorClass );
         }
     
         return {
@@ -241,24 +234,43 @@ define([
       
       defaultValue: false,
       
-      tagName: 'input',
+      // tagName: 'input',
       
-      initialize: function(options) {
-        editors.Base.prototype.initialize.call(this, options);
-        
-        $(this.el).attr('type', 'checkbox');
+      initialize: function() {
+        editors.Base.prototype.initialize.call(this, this.options);
+       
+        this.schema = this.options.schema;
+
+        var el = $(this.el);
+        if(!el.length) el.attr('type', 'checkbox');
+
+        if(this.schema || el.length > 1) {
+          // todo render one or multiple checkboxes
+        }
       },
     
       render: function(container) {
         this.setValue(this.value);
-
-        this.baseRender(container || null);
     
+        this.baseRender(container || null);
+
         return this;
       },
       
       getValue: function() {
-        return $(this.el).attr('checked') ? true : false;
+
+        this.baseRender(container || null);
+
+        this.baseRender(container || null);
+        var el = $(this.el),
+            results = {};
+
+        el.each(function() {
+          var checkbox = $(this);
+          results[checkbox.val()] = checkbox.attr('checked') ? true : false;
+        });
+
+        return results;
       },
       
       setValue: function(value) {
@@ -272,10 +284,11 @@ define([
       
       defaultValue: '',
     
-      initialize: function(options) {
-        editors.Text.prototype.initialize.call(this, options);
+      initialize: function() {
+        editors.Text.prototype.initialize.call(this, this.options);
     
-        $(this.el).attr('type', 'hidden');
+        var el = $(this.el);
+        if(!el.length) el.attr('type', 'hidden');
       },
       
       getValue: function() {
@@ -303,8 +316,10 @@ define([
       initialize: function() {
         editors.Base.prototype.initialize.call(this, this.options);
 
-        if (!this.schema || !this.schema.options)
-          throw "Missing required 'schema.options'";
+        this.schema = this.options.schema;
+
+        if (!this.schema)
+          throw "Select editor: missing required 'schema.options'";
       },
     
       render: function(container) {
@@ -502,10 +517,10 @@ define([
     
       render: function(container) {
         var el = $(this.el),
-          data = this.value || {},
-          key = this.key,
-          schema = this.schema,
-          objSchema = schema.subSchema;
+            data = this.value || {},
+            key = this.key,
+            schema = this.schema,
+            objSchema = schema.subSchema;
     
         this.form = new Form({
           schema: objSchema,

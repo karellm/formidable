@@ -33,6 +33,7 @@ define([
         schema.title      = schema.title || helpers.keyToTitle(options.key);
         schema.append     = (schema.el || schema.render == false) ? false : true;
         this.schema       = schema;
+        this.form         = options.form || null;
 
         this.key          = options.key;
         this.model        = options.model;
@@ -59,6 +60,7 @@ define([
           validators: schema.validators,
           schema    : schema.editor.schema,
           idPrefix  : this.idPrefix,
+          form      : this.form
         });
 
         if ( schema.el && schema.el.length ) {
@@ -79,8 +81,6 @@ define([
             title        : schema.title,
             fieldClass   : this.fieldClass,
             type         : editorType,
-            errorClass   : this.errorClass,
-            successClass : this.successClass
           }));
 
           // Add the editor
@@ -101,7 +101,7 @@ define([
 
         switch(tagname) {
           case 'textarea':
-            return 'Textarea'; break;
+            return 'TextArea'; break;
 
           case 'select':
             return 'Select'; break;
