@@ -37,9 +37,15 @@
                 integer: true,
                 min: 0
               }
+            },
+            name: {
+              label: "Name",
+              validators: {
+                required: true
+              }
             }
           },
-          fieldsets: [['id']]
+          fieldsets: [['id', 'name']]
         }).render($('.generated'));
 
         // existingForm = new Backbone.Form({

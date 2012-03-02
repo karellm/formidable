@@ -31,7 +31,7 @@ define([
     model: FieldModel,
   });
 
-  var Form = Backbone.View.extend({
+  var Formidable = Backbone.View.extend({
 
     tagName: 'form',
 
@@ -103,7 +103,9 @@ define([
 
       //Create form fields
       _.each(fields, function(key) {
-        var f_schema = getNestedSchema(self.schema, key);
+        var f_schema = getNestedSchema(self.schema, key),
+            type = (!f_schema.editor) ? 'Text' : (f_schema.editor.el) ? Helpers.getEditorType(f_schema.el) : f_schema.editor.type || f_schema.editor;
+        f_schema.editor = f_schema.editor || {};
 
         if (!f_schema) throw "Field '"+key+"' not found in schema";
 
@@ -124,14 +126,14 @@ define([
           el          : (f_schema.editor.el && f_schema.editor.el.parents( self.field_class ).get(0)) || null,
           attr        : {
             id        : f_schema.id,
-            class     : self.fieldClass + ' ' + (f_schema.class || (f_schema.editor.type || f_schema.editor).toLowerCase()+'-field '+key)
+            class     : self.fieldClass + ' ' + (f_schema.class || type.toLowerCase()+'-field '+key)
           },
           label       : f_schema.label || Helpers.keyToTitle(key),
           template    : f_schema.template || Helpers.createTemplate('<label for="{{e_id}}">{{label}}</label><div class="{{e_class}}"></div>'),
           append      : (f_schema.el || f_schema.append == false) ? false : true,
           validators  : f_schema.validators,
           editor: {
-            type      : (f_schema.editor.el) ? Helpers.getEditorType(f_schema.el) : f_schema.editor.type || f_schema.editor,
+            type      : type,
             el        : f_schema.editor.el || null,
             value     : (f_schema.editor.model) ? f_schema.editor.model.get(key) : f_schema.editor.value || (self.data && self.data[key]) || null,
             collection: f_schema.editor.collection,
@@ -256,10 +258,10 @@ define([
 
 
   //Exports
-  Form.Helpers = Helpers;
-  Form.Field = Field;
-  Form.Editors = Editors;
-  Form.Validators = Validators;
-  Backbone.Form = Form;
+  Formidable.Helpers    = Helpers;
+  Formidable.Field      = Field;
+  Formidable.Editors    = Editors;
+  Formidable.Validators = Validators;
+  Backbone.Formidable   = Formidable;
 
 });
