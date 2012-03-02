@@ -1,12 +1,9 @@
-
-define([
-  "underscore"
-], function(_) {
+define(['underscore'], function(_) {
 
     return (function() {
 
         var validators = {};
-    
+
         validators.required = function (value, criteria) {
             if(criteria && !( value === 0 || !!value ) ) {
                 return false;
@@ -62,7 +59,7 @@ define([
         }
 
         return validators;
-    
+
     })();
 
 });

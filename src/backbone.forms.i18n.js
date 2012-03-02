@@ -1,6 +1,4 @@
-
 define({
-
 
   // ENGLISH
   en: {
