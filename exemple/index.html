@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <title>Backbone Forms Exemple</title>
+
+    <!-- <link rel="stylesheet" type="text/css" href="style.css" /> -->
+
+    <!--
+    <script type="text/javascript" src="lib/jquery.js"></script>
+    <script type="text/javascript" src="lib/underscore.js"></script>
+    <script type="text/javascript" src="lib/backbone.js"></script>
+    <script type="text/javascript" src="lib/backbone.form.js"></script>
+    -->
+
+    <script type="text/javascript" src="lib/require-jquery.js"></script>
+    <script type="text/javascript">
+      require.config({
+        baseUrl: "../",
+        paths: {
+          "underscore"  : "exemple/lib/underscore",
+          "backbone"    : "exemple/lib/backbone"
+        }
+      });
+
+      require( ["jquery", "underscore", "backbone", "src/backbone.forms"], function($, _, Backbone) {
+
+        generatedForm = new Backbone.Form({
+          schema: {
+            id: {
+              editor: {
+                type: 'Number',
+                value: 2
+              },
+              validators: {
+                required: true,
+                integer: true,
+                min: 0
+              }
+            }
+          },
+          fieldsets: [['id']]
+        }).render($('.generated'));
+
+        // existingForm = new Backbone.Form({
+        //   schema: {
+        //     id: {
+        //       el: $('.existing [name=id]')
+        //     }
+        //   }
+        // }).render($('.generated'));
+
+      });
+    </script>
+
+    <style type="text/css">
+      .generated, .existing {
+        float: left;
+        width: 50%;
+      }
+    </style>
+</head>
+
+<body>
+
+<div class="generated"></div>
+<div class="existing">
+  <form action="">
+    <fieldset>
+      <div class="field field-text">
+        <label for="e_id">Id</label>
+        <div class="editor">
+          <input type="number" name="id" id="e_id" value="2" />
+        </div>
+      </div>
+
+      <div class="field field-text">
+        <label for="e_id">Id</label>
+        <div class="editor">
+          <input type="text" name="id" id="e_id" value="2" />
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+</div>
+
+
+</body>
+</html>
