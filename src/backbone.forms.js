@@ -165,10 +165,10 @@ define([
 
       // Validate all the fields ----------
       } else {
-        _.each(this.fields, function(field) {
+        _.each(this.fields, function(field, key) {
           var error = field.validate();
           if(error.hasError) results.hasError = true;
-          results[field.key] = error;
+          results[key] = error;
         });
       }
 

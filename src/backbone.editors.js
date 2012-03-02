@@ -60,10 +60,11 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
           self = this,
           tests = {},
           hasError = false,
-          value = this.getValue();
+          value = this.getValue(),
+          validators = this.model.get('validators');
 
-      if (this.validators) {
-        _.each(this.validators, function(against, type) {
+      if (validators) {
+        _.each(validators, function(against, type) {
           if(_.isFunction(against))
             var test = against(value, self);
           else
@@ -74,10 +75,10 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
         });
       }
 
-      if (_.isEmpty(tests) && this.model && this.model.validate) {
-        var arg = {}; arg[this.key] = value;
-        tests = this.model.validate(arg);
-      }
+      // if (_.isEmpty(tests) && this.model && this.model.validate) {
+      //   var arg = {}; arg[this.key] = value;
+      //   tests = this.model.validate(arg);
+      // }
 
       return {
         hasError: hasError,
