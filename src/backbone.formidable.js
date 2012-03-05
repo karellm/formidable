@@ -8,22 +8,6 @@ define([
   './backbone.editors'
 ], function ($, _, Backbone, Validators, Helpers, Field, Editors) {
 
-  //Support paths for nested attributes e.g. 'user.name'
-  function getNested(obj, path) {
-    var fields = path.split("."),
-      result = obj;
-
-    for (var i = 0, n = fields.length; i < n; i++) {
-      result = result[fields[i]];
-    }
-    return result;
-  }
-
-  function getNestedSchema(obj, path) {
-    path = path.replace(/\./g, '.subSchema.');
-    return getNested(obj, path);
-  }
-
   var FieldModel = Backbone.Model.extend({
   });
 
@@ -52,8 +36,6 @@ define([
       this.templates     = this.options.templates;
     },
 
-
-
     /**
      * Render the form.
      */
@@ -81,33 +63,49 @@ define([
             $fieldset.append($('<legend>').html(fieldset.legend));
           }
 
-          self.renderFields(fieldset.fields, $fieldset);
+          self.renderFields(self.keysToSchema(fieldset.fields), $fieldset);
 
           el.append($fieldset);
         });
       } else {
-        this.renderFields(_.keys(this.schema), el);
+        this.renderFields(this.schema, el);
       }
 
       return this;
     },
 
+    /**
+     * Get a list of key and return the associated schemas
+     */
+    keysToSchema: function(keys) {
+      var self = this,
+          schema = {};
 
+      _.each(keys, function(key) {
+        schema[key] = self.schema[key];
+      });
+
+      return schema;
+    },
 
     /**
      * Render a list of fields.
      */
-    renderFields: function (fields, container) {
+    renderFields: function (fields, container, parent) {
       var container = container || $(this.el),
           self = this;
 
-      //Create form fields
-      _.each(fields, function(key) {
-        var f_schema = getNestedSchema(self.schema, key),
-            type = (!f_schema.editor) ? 'Text' : (f_schema.editor.el) ? Helpers.getEditorType(f_schema.el) : f_schema.editor.type || f_schema.editor;
+      _.each(fields, function(f_schema, key) {
+
+        // Full key in case of nested fields
+        var fullKey = (parent) ? parent+'.'+key : key,
+            fullKeyClass = fullKey.replace(/\./g, '_');
+
+
+        // Cleanup
+        var type = (!f_schema.editor) ? 'Text' : (f_schema.editor.el) ? Helpers.getEditorType(f_schema.el) : f_schema.editor.type || f_schema.editor;
         f_schema.editor = f_schema.editor || {};
 
-        if (!f_schema) throw "Field '"+key+"' not found in schema";
 
         // Pick the template if specified
         if(f_schema.template) {
@@ -121,12 +119,13 @@ define([
 
         // Define the model for the field
         self.collection.add({
-          id          : key,
+          id          : fullKey,
+          type        : (f_schema.schema) ? 'nested' : 'editor',
           existing    : (f_schema.editor.el && true) || false,
           el          : (f_schema.editor.el && f_schema.editor.el.parents( self.field_class ).get(0)) || null,
           attr        : {
             id        : f_schema.id,
-            class     : self.fieldClass + ' ' + (f_schema.class || type.toLowerCase()+'-field '+key)
+            class     : self.fieldClass + ' ' + (f_schema.class || '') + ' ' + ( (f_schema.schema) ? 'nested-field ' : type.toLowerCase()+'-field ') + fullKeyClass
           },
           label       : f_schema.label || Helpers.keyToTitle(key),
           template    : f_schema.template || Helpers.createTemplate('<label for="{{e_id}}">{{label}}</label><div class="{{e_class}}"></div>'),
@@ -135,21 +134,26 @@ define([
           editor: {
             type      : type,
             el        : f_schema.editor.el || null,
-            value     : (f_schema.editor.model) ? f_schema.editor.model.get(key) : f_schema.editor.value || (self.data && self.data[key]) || null,
+            value     : (f_schema.editor.model) ? f_schema.editor.model.get(key) : f_schema.editor.value || (self.data && self.data[fullKey]) || null,
             collection: f_schema.editor.collection,
-            id        : self.prefix + (f_schema.id || key),
+            id        : self.prefix + (f_schema.id || fullKeyClass),
             attr      : f_schema.editor.attr,
-            novalidate: f_schema.editor.novalidate || self.novalidate
+            novalidate: f_schema.editor.novalidate || self.novalidate,
           },
+          fields      : (f_schema.schema) ? _.keys(f_schema.schema) : null
         });
 
-        self.fields[key] = new Field({
+        self.fields[fullKey] = new Field({
           form   : self,
-          model  : self.collection.get(key)
+          model  : self.collection.get(fullKey)
         }).render(container);
+
+        // render nested field
+        if(f_schema.schema) {
+          self.renderFields(f_schema.schema, $(self.fields[fullKey].el), fullKey);
+        }
       });
     },
-
 
 
     /**

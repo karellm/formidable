@@ -23,9 +23,9 @@
         }
       });
 
-      require( ["jquery", "underscore", "backbone", "src/backbone.forms"], function($, _, Backbone) {
+      require( ["jquery", "underscore", "backbone", "src/backbone.formidable"], function($, _, Backbone) {
 
-        generatedForm = new Backbone.Form({
+        generatedForm = new Backbone.Formidable({
           schema: {
             id: {
               editor: {
@@ -43,12 +43,41 @@
               validators: {
                 required: true
               }
+            },
+            email: {
+              label: "Email",
+              validators: {
+                email: true,
+              }
+            },
+            // date: {
+            // },
+            price_range: {
+              label: 'Price range',
+              schema: {
+                price_min: {
+                  label: 'Min',
+                  editor: 'Number',
+                  validators: {
+                    number: true,
+                    min: 0
+                  }
+                },
+                price_max: {
+                  label: 'Max',
+                  editor: 'Number',
+                  validators: {
+                    number: true,
+                    min: function() { /*form.price_range.price_min*/ },
+                  }
+                }
+              }
             }
           },
-          fieldsets: [['id', 'name']]
+          fieldsets: [['id', 'name'], ['email'], ['price_range']]
         }).render($('.generated'));
 
-        // existingForm = new Backbone.Form({
+        // existingForm = new Backbone.Formidable({
         //   schema: {
         //     id: {
         //       el: $('.existing [name=id]')

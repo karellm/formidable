@@ -523,9 +523,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
    *  schema.subSchema:  Subschema for object.
    *  idPrefix,
    */
-  editors.Object = editors.Base.extend({
-
-    className: 'bbf-object',
+  editors.Nested = editors.Base.extend({
 
     defaultValue: {},
 
@@ -587,7 +585,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
    * Special options:
    *  schema.model:  Embedded model constructor
    */
-  editors.NestedModel = editors.Object.extend({
+  editors.NestedModel = editors.Nested.extend({
 
     initialize: function(options) {
       editors.Base.prototype.initialize.call(this, options);

@@ -33,8 +33,12 @@ define(['jquery', 'underscore', 'backbone', './backbone.editors'], function ($, 
       }
 
       // Create the editor
-      this.editor = this.createEditor(editor.type, { model: this.model });
-      $(this.editor.render(this.$('.'+this.form.editorClass)).el);
+      if(this.model.get('type') == 'editor') {
+        this.editor = this.createEditor(editor.type, { model: this.model });
+        $(this.editor.render(this.$('.'+this.form.editorClass)).el);
+      } else {
+        // render nested form
+      }
 
       return this;
     },

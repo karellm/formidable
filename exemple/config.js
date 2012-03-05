@@ -43,6 +43,9 @@ new Backbone.Form({
         editor: 'Number',
 
       // Field html ----------
+        schema        : {}        // Nested schema
+
+      // Field html ----------
         el            : $(''),    // jQuery element if it exists
         class         : '',       // field 'class' attribute
         id            : '',       // field 'id' attribute
@@ -83,12 +86,23 @@ new Backbone.Form({
     ],
 
 
+    // validation ----------------------
+    // ---------------------------------
+    validationTrigger: {
+      select     : 'change',
+      radio      : 'change',
+      checkbox   : 'change',
+      text       : 'blur',
+      number     : 'blur',
+    },
+
 
     // templates -----------------------
     // ---------------------------------
     templates: {
       templateName: '<div></div>'
     },
+
 
 
 
