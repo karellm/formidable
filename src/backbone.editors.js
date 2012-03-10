@@ -318,33 +318,26 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
 
 
   /**
-   * Select editor << Base
+   * Options editor << Base
    * ------------------------------------
    * ------------------------------------
-   * Renders a <select> with given options
-   *
-   * Requires an 'options' value on the schema.
-   * Can be an array of options, a function that calls back with the array of options, a string of HTML
-   * or a Backbone collection. If a collection, the models must implement a toString() method
    */
-  editors.Select = editors.Base.extend({
+  editors.Options = editors.Base.extend({
 
-    tagName: 'select',
+    tagName: 'div',
+
+    template: _.template(''),
 
     initialize: function() {
       editors.Base.prototype.initialize.call(this, this.options);
 
-      this.schema = this.options.schema;
-
-      if (!this.schema)
-        throw "Select editor: missing required 'schema.options'";
+      if (!this.config.options)
+        throw "Editor: missing required 'options'";
     },
 
     render: function(container) {
-      var options = this.schema.options,
+      var options = this.config.options,
           self = this;
-
-
 
       //If a collection was passed, check if it needs fetching
       if (options instanceof Backbone.Collection) {
@@ -374,7 +367,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
         self.renderOptions(options);
       }
 
-      this.baseRender(container || null);
+      editors.Base.prototype.render.call(this, container || null);
 
       return this;
     },
@@ -386,23 +379,69 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
      *           or as a string of <option> HTML to insert into the <select>
      */
     renderOptions: function(options) {
-      var $select = $(this.el),
-          html;
+      var html;
 
       if (_.isString(options)) {
         html = options;
-      } else if (_.isArray(options)) {
-        html = this._arrayToHtml(options);
       } else if (options instanceof Backbone.Collection) {
         html = this._collectionToHtml(options)
+      } else {
+        html = this._hashToHtml(options);
       }
 
       //Insert options
-      $select.html(html);
+      $(this.el).html(html);
 
       //Select correct option
-      this.setValue(this.value);
+      this.setValue(this.config.value);
     },
+
+    /**
+     * Transforms a collection into HTML ready to use in the renderOptions method
+     */
+    _collectionToHtml: function(collection) {
+      var self = this;
+
+      return _(collection.models).map(function(model) {
+        return self.template({
+          name: self.config.name,
+          value: model.value,
+          label: model.toString()
+        });
+      }).join('');
+    },
+
+    /**
+     * Create the <option> HTML
+     */
+    _hashToHtml: function(options) {
+      var self = this;
+
+      return _.map(options, function(label, value) {
+        return self.template({
+          name: self.config.name,
+          value: value,
+          label: label
+        });
+      }).join('');
+    }
+  });
+
+  /**
+   * Select editor << Base
+   * ------------------------------------
+   * ------------------------------------
+   * Renders a <select> with given options
+   *
+   * Requires an 'options' value on the schema.
+   * Can be an array of options, a function that calls back with the array of options, a string of HTML
+   * or a Backbone collection. If a collection, the models must implement a toString() method
+   */
+  editors.Select = editors.Options.extend({
+
+    tagName: 'select',
+
+    template: _.template('<option value="<%= value %>"><%= label %></option>'),
 
     getValue: function() {
       return $(this.el).val();
@@ -412,54 +451,12 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
       $(this.el).val(value);
     },
 
-    /**
-     * Transforms a collection into HTML ready to use in the renderOptions method
-     * @param {Backbone.Collection}
-     * @return {String}
-     */
-    _collectionToHtml: function(collection) {
-      //Convert collection to array first
-      var array = [];
-      collection.each(function(model) {
-        array.push({ val: model.id, label: model.toString() });
-      });
-
-      //Now convert to HTML
-      var html = this._arrayToHtml(array);
-
-      return html;
-    },
-
-    /**
-     * Create the <option> HTML
-     * @param {Array}  Options as a simple array e.g. ['option1', 'option2']
-     *           or as an array of objects e.g. [{val: 543, label: 'Title for object 543'}]
-     * @return {String} HTML
-     */
-    _arrayToHtml: function(array) {
-      var html = [];
-
-      //Generate HTML
-      _.each(array, function(option) {
-        if (_.isObject(option)) {
-          var val = option.val ? option.val : '';
-          html.push('<option value="'+val+'">'+option.label+'</option>');
-        }
-        else {
-          html.push('<option>'+option+'</option>');
-        }
-      });
-
-      return html.join('');
-    }
-
   });
 
 
 
-
  /**
-   * Radio editor << Select
+   * Radio editor << Options
    * ------------------------------------
    * ------------------------------------
    * Renders a <ul> with given options represented as <li> objects containing radio buttons
@@ -468,9 +465,15 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
    * Can be an array of options, a function that calls back with the array of options, a string of HTML
    * or a Backbone collection. If a collection, the models must implement a toString() method
    */
-  editors.Radio = editors.Select.extend({
+  editors.Radio = editors.Options.extend({
 
     tagName: 'div',
+
+    template: _.template('<label><input type="radio" name="<%= name %>" value="<%= value %>" /><span><%= label %></span></label>'),
+
+    toHTML: function() {
+      return $(this.el).html();
+    },
 
     getValue: function() {
       return this.$('input[type=radio]:checked').val();
@@ -478,34 +481,6 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
 
     setValue: function(value) {
       return this.$('input[type=radio][value='+value+']').attr({checked: 'checked'});
-    },
-
-    /**
-     * Create the radio list HTML
-     * @param {Array}  Options as a simple array e.g. ['option1', 'option2']
-     *           or as an array of objects e.g. [{val: 543, label: 'Title for object 543'}]
-     * @return {String} HTML
-     */
-    _arrayToHtml: function (array) {
-      var html = [];
-      var self = this;
-
-      _.each(array, function(option, index) {
-        var itemHtml = '<li>';
-        if (_.isObject(option)) {
-          var val = option.val ? option.val : '';
-          itemHtml += ('<input type="radio" name="'+self.id+'" value="'+val+'" id="'+self.id+'-'+index+'" />')
-          itemHtml += ('<label for="'+self.id+'-'+index+'">'+option.label+'</label>')
-        }
-        else {
-          itemHtml += ('<input type="radio" name="'+self.id+'" value="'+option+'" id="'+self.id+'-'+index+'" />')
-          itemHtml += ('<label for="'+self.id+'-'+index+'">'+option+'</label>')
-        }
-        itemHtml += '</li>';
-        html.push(itemHtml);
-      });
-
-      return html.join('');
     }
 
   });
