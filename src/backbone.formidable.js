@@ -59,6 +59,10 @@ define([
 
           var $fieldset = $('<fieldset>');
 
+          if (fieldset.className) {
+            $fieldset.addClass(className);
+          }
+
           if (fieldset.legend) {
             $fieldset.append($('<legend>').html(fieldset.legend));
           }
@@ -128,14 +132,14 @@ define([
             class     : self.fieldClass + ' ' + (f_schema.class || '') + ' ' + ( (f_schema.schema) ? 'nested-field ' : type.toLowerCase()+'-field ') + fullKeyClass
           },
           label       : f_schema.label || Helpers.keyToTitle(key),
-          template    : f_schema.template || Helpers.createTemplate('<label for="{{e_id}}">{{label}}</label><div class="{{e_class}}"></div>'),
           append      : (f_schema.el || f_schema.append == false) ? false : true,
           validators  : f_schema.validators,
           editor: {
             type      : type,
+            name      : self.dottedToHashPath(fullKey),
             el        : f_schema.editor.el || null,
             value     : (f_schema.editor.model) ? f_schema.editor.model.get(key) : f_schema.editor.value || (self.data && self.data[fullKey]) || null,
-            collection: f_schema.editor.collection,
+            options   : f_schema.editor.options,
             id        : self.prefix + (f_schema.id || fullKeyClass),
             attr      : f_schema.editor.attr,
             novalidate: f_schema.editor.novalidate || self.novalidate,
@@ -157,6 +161,16 @@ define([
 
 
     /**
+     * Change a path lie "price_range.min" to "price_range[min]"
+     */
+    dottedToHashPath: function(path) {
+      var segments = path.split('.');
+
+      return segments[0] + _.map(segments.slice(1), function(s) { return '['+s+']'; }).join('');
+    },
+
+
+    /**
      * Validate the data
      */
     validate: function(key) {
@@ -164,7 +178,7 @@ define([
           results = {hasError: false};
 
       // Validate only one field ----------
-      if(key && this.fields[key]) {
+      if(key && this.fields[key] && this.fields[key].type === 'editor') {
         results = this.fields[key].validate();
       } else if (key && this.fields[key]) {
         throw "Field '"+key+"' couldn't be validated as it doesn't exist";
@@ -172,6 +186,7 @@ define([
       // Validate all the fields ----------
       } else {
         _.each(this.fields, function(field, key) {
+          if(field.type !== 'editor') return false;
           var error = field.validate();
           if(error.hasError) results.hasError = true;
           results[key] = error;

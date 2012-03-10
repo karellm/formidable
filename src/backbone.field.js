@@ -6,6 +6,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.editors'], function ($, 
 
     initialize: function() {
       this.form = this.options.form || null;
+      this.type = this.model.get('type');
 
       // Set the element if it already exists
       if(this.model.get('existing')) this.el = this.model.get('el');
@@ -19,24 +20,23 @@ define(['jquery', 'underscore', 'backbone', './backbone.editors'], function ($, 
       // Render the element if it doesn't exist
       if(!this.model.get('existing')) {
         var attr = this.model.get('attr'),
-            editor = this.model.get('editor');
+            editor = this.model.get('editor'),
+            label = this.model.get('label');
 
         if(attr.id) el.attr('id', attr.id);
         if(attr.class) el.addClass(attr.class);
         if(container && this.model.get('append')) container.append(el);
 
-        el.html(this.model.get('template')({
-          label        : this.model.get('label'),
-          e_id         : editor.id,
-          e_class      : this.form.editorClass
-        }));
+        if(label) el.append('<label for="'+editor.id+'">'+label+'</label>');
+        if(this.type == 'editor' ) el.append('<div class="'+this.form.editorClass+'">');
       }
 
       // Create the editor
-      if(this.model.get('type') == 'editor') {
-        this.editor = this.createEditor(editor.type, { model: this.model });
-        $(this.editor.render(this.$('.'+this.form.editorClass)).el);
+      if(this.type == 'editor') {
+        this.editor = this.createEditor(editor.type, { field: this, model: this.model });
+        this.editor.render( this.$('.'+this.form.editorClass) );
       } else {
+
         // render nested form
       }
 
@@ -56,14 +56,14 @@ define(['jquery', 'underscore', 'backbone', './backbone.editors'], function ($, 
      * Validate the value from the editor
      */
     validate: function() {
-      return this.editor.validate();
+      return (this.type === 'editor') ? this.editor.validate() : null;
     },
 
     /**
      * Update the model with the new value from the editor
      */
     commit: function() {
-      return this.editor.commit();
+      return (this.type === 'editor') ? this.editor.commit() : null;
     },
 
     /**
@@ -71,14 +71,14 @@ define(['jquery', 'underscore', 'backbone', './backbone.editors'], function ($, 
      * @return {Mixed}
      */
     getValue: function() {
-      return this.editor.getValue();
+      return (this.type === 'editor') ? this.editor.getValue() : null;
     },
 
     /**
      * Set/change the value of the editor
      */
     setValue: function(value) {
-      this.editor.setValue(value);
+      return (this.type === 'editor') ? this.editor.setValue(value) : null;
     },
 
     remove: function() {

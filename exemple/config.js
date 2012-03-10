@@ -27,12 +27,8 @@ new Backbone.Form({
           el        : $('input[name="id"]'),
           value     : '',
           novalidate    : true, // optional, take the global config value by default
-          collection: {         // Collection for the editor
-            key: {
-              value    : '',
-              label    : '',
-              checked  : false,
-            }
+          options: {         // Collection for the editor
+            value: 'label'
           },
           plugins: {            // Plugins for the editor
 
@@ -74,6 +70,7 @@ new Backbone.Form({
     // ---------------------------------
     fieldsets: [{
       legend: 'Legend',
+      className: 'bla',
       fields: ['firstname', 'lastname']
     },{
       legend: 'Another Legend',

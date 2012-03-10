@@ -50,12 +50,22 @@
                 email: true,
               }
             },
+            sexe: {
+              editor: {
+                type: 'Radio',
+                options: {
+                  male: 'Male',
+                  female: 'Female'
+                },
+                value: 'female'
+              }
+            },
             // date: {
             // },
             price_range: {
               label: 'Price range',
               schema: {
-                price_min: {
+                min: {
                   label: 'Min',
                   editor: 'Number',
                   validators: {
@@ -63,18 +73,18 @@
                     min: 0
                   }
                 },
-                price_max: {
+                max: {
                   label: 'Max',
                   editor: 'Number',
                   validators: {
                     number: true,
-                    min: function() { /*form.price_range.price_min*/ },
+                    min: function(value, form) { return value >= form.fields['price_range.min'].getValue() },
                   }
                 }
               }
             }
           },
-          fieldsets: [['id', 'name'], ['email'], ['price_range']]
+          fieldsets: [['id', 'name', 'sexe'], ['email'], ['price_range']]
         }).render($('.generated'));
 
         // existingForm = new Backbone.Formidable({

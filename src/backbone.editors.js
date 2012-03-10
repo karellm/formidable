@@ -21,7 +21,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
     initialize: function() {
 
       this.field         = this.options.field;
-      this.editor        = this.model.get('editor');
+      this.config        = this.model.get('editor');
 
       // Set html attributes to the editor -------------------
       if(this.options.attr && !this.schema.el) {
@@ -33,15 +33,22 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
 
 
       // Add plugins ------------------------------------------
-      if(_.isFunction(this.editor.plugin)) this.plugin = $.proxy(this.editor.plugin, this);
+      if(_.isFunction(this.config.plugin)) this.plugin = $.proxy(this.config.plugin, this);
     },
 
     render: function(container) {
       // Create the dom element if a container argument was passed
-      if(container && container.length) container.append(this.el);
+      if(container && container.length) container.append(this.toHTML());
 
       // Apply possible plugin
       if(this.plugin) this.plugin();
+    },
+
+    /**
+     * Function that return the html to embed in the field
+     */
+    toHTML: function() {
+      return this.el;
     },
 
     getValue: function() {
@@ -64,11 +71,12 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
           validators = this.model.get('validators');
 
       if (validators) {
-        _.each(validators, function(against, type) {
-          if(_.isFunction(against))
-            var test = against(value, self);
+        _.each(validators, function(criteria, type) {
+
+          if(_.isFunction(criteria))
+            var test = criteria(value, self.field.form);
           else
-            var test = self.getValidator(type)(value, against, self);
+            var test = self.getValidator(type)(value, criteria, self.field.form);
 
           tests[type] = test;
           if(!test) hasError = true;
@@ -145,14 +153,14 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
     render: function(container) {
 
       var el = $(this.el),
-          type = this.editor.type || 'Text';
+          type = this.config.type || 'Text';
 
 
       // Set editor attributes
       if(!this.model.get('existing')) {
         el.attr('type', type.toLowerCase());
-        if(this.editor.novalidate) el.attr('novalidate', 'novalidate');
-        this.setValue(this.editor.value);
+        if(this.config.novalidate) el.attr('novalidate', 'novalidate');
+        this.setValue(this.config.value);
       }
 
       editors.Base.prototype.render.call(this, container || null);
@@ -165,6 +173,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
     },
 
     setValue: function(value) {
+      value = (value === undefined || value === null) ? '' : value;
       $(this.el).attr('value', value);
     }
 
@@ -181,12 +190,9 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
     defaultValue: 0,
 
     events: {
-      'keypress': 'onKeyPress'
+      // 'keypress': 'onKeyPress'
     },
 
-    /**
-     * Check value is numeric
-     */
     onKeyPress: function(event) {
       var newVal = $(this.el).val() + String.fromCharCode(event.keyCode);
 
@@ -196,9 +202,7 @@ define(['jquery', 'underscore', 'backbone', './backbone.validators'], function (
     },
 
     getValue: function() {
-      var value = $(this.el).val();
-
-      return value === "" ? null : parseFloat(value, 10);
+      return parseFloat( $(this.el).val(), 10);
     },
 
     setValue: function(value) {
